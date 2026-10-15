@@ -5,21 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>.</title>
   <style>
-    html, body { margin: 0; height: 100%; background: #111111; }
+    html, body { margin: 0; height: 100%; background: #0a1424; }
     svg { display: block; width: 100%; height: 100%; }
   </style>
 </head>
 <body>
   <svg id="pace"></svg>
   <script>
-    const GREEN = "#3dd68c";
-    const AMBER = "#e6b450";
-    const RED = "#e25b5b";
-    const DIM = "#2a2a2a";
-    const LINE = "#e8e8e8";
-    const FAINT = "rgba(255,255,255,0.16)";
-    const BAND = "rgba(255,255,255,0.07)";
-    const AMBER_ZONE = "rgba(230,180,80,0.10)";
+    const BG = "#0a1424";
+    const ON_PACE = "#2a8cf0";
+    const SLIPPING = "#f2d16b";
+    const BEHIND = "#e8572e";
+    const DIM = "#16263d";
+    const LINE = "#dcebff";
+    const FAINT = "rgba(150,200,255,0.18)";
+    const BAND = "rgba(150,200,255,0.08)";
+    const SLIPPING_ZONE = "rgba(242,209,107,0.09)";
 
     const SHOW_LABELS = false;
 
@@ -58,7 +59,7 @@
       const node = el("text", {
         x,
         y,
-        fill: opts.fill || "rgba(255,255,255,0.5)",
+        fill: opts.fill || "rgba(190,220,255,0.55)",
         "font-family": "ui-sans-serif, system-ui, -apple-system, sans-serif",
         "font-size": opts.size || 11,
         "font-weight": opts.weight || "400",
@@ -129,7 +130,7 @@
           [xAt(end), yAt(Math.max(0, total - amberUnits))],
           [xAt(new Date(start.getTime() + 14 * DAY)), yAt(0)],
         ].map((p) => p.join(",")).join(" "),
-        fill: AMBER_ZONE,
+        fill: SLIPPING_ZONE,
       });
       svg.appendChild(zone);
 
@@ -142,7 +143,7 @@
       // Target line.
       svg.appendChild(el("line", {
         x1: xAt(start), y1: yAt(0), x2: xAt(end), y2: yAt(total),
-        stroke: "rgba(255,255,255,0.45)", "stroke-width": 1.5,
+        stroke: "rgba(150,200,255,0.5)", "stroke-width": 1.5,
       }));
 
       // Actual completions as a step line.
@@ -180,10 +181,10 @@
         const goalUnits = cumulative + data.current.units;
         const expectedAtGoal = unitsPerDay * (goalDate - start) / DAY;
         const shortfall = expectedAtGoal - goalUnits;
-        const goalColor = overdue ? RED
-          : shortfall <= 0 ? GREEN
-          : shortfall <= amberUnits ? AMBER
-          : RED;
+        const goalColor = overdue ? BEHIND
+          : shortfall <= 0 ? ON_PACE
+          : shortfall <= amberUnits ? SLIPPING
+          : BEHIND;
 
         svg.appendChild(el("polyline", {
           points: [
@@ -198,7 +199,7 @@
         }));
         svg.appendChild(el("circle", {
           cx: xAt(goalDate), cy: yAt(goalUnits), r: 5,
-          fill: "#111111", stroke: goalColor, "stroke-width": 2,
+          fill: BG, stroke: goalColor, "stroke-width": 2,
         }));
         label(svg, `${goalUnits} ${overdue ? "was due" : "by"} ${formatDay(goal)}`,
           xAt(goalDate) + 10, yAt(goalUnits) + 4, {
@@ -217,7 +218,7 @@
         const elapsed = (today - start) / DAY;
         const expected = unitsPerDay * elapsed;
         const behind = expected - cumulative;
-        const color = behind <= 0 ? GREEN : behind <= amberUnits ? AMBER : RED;
+        const color = behind <= 0 ? ON_PACE : behind <= amberUnits ? SLIPPING : BEHIND;
 
         svg.appendChild(el("circle", {
           cx: xAt(today), cy: yAt(cumulative), r: 5,
@@ -320,7 +321,7 @@
       }));
 
       // Filled bar.
-      const barColor = total >= tick ? GREEN : total >= tick * 0.75 ? AMBER : RED;
+      const barColor = total >= tick ? ON_PACE : total >= tick * 0.75 ? SLIPPING : BEHIND;
       const barW = Math.max(0, Math.min(1, total / scaleMax)) * w;
       if (barW > 0) {
         svg.appendChild(el("rect", {
@@ -369,9 +370,9 @@
         }));
 
         if (!future && value > 0) {
-          let color = GREEN;
-          if (value < dayMin) color = value >= dayMin * 0.5 ? AMBER : RED;
-          if (color === RED && i >= 5 && weekOnPace) color = AMBER;
+          let color = ON_PACE;
+          if (value < dayMin) color = value >= dayMin * 0.5 ? SLIPPING : BEHIND;
+          if (color === BEHIND && i >= 5 && weekOnPace) color = SLIPPING;
 
           const fillHeight = Math.min(pipHeight, value / pipScale * pipHeight);
           svg.appendChild(el("rect", {
@@ -390,7 +391,7 @@
         label(svg, days[i], px + pipWidth / 2, y + h, {
           size: fontSize,
           anchor: "middle",
-          fill: future ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.55)",
+          fill: future ? "rgba(190,220,255,0.3)" : "rgba(190,220,255,0.6)",
         });
       }
     }
