@@ -21,6 +21,8 @@
     const BAND = "rgba(255,255,255,0.07)";
     const AMBER_ZONE = "rgba(230,180,80,0.10)";
 
+    const SHOW_LABELS = false;
+
     const DAY = 86400000;
 
     function parseDate(s) {
@@ -52,6 +54,7 @@
     }
 
     function label(svg, content, x, y, opts = {}) {
+      if (!SHOW_LABELS) return;
       const node = el("text", {
         x,
         y,
@@ -68,7 +71,8 @@
     }
 
     function formatMonthYear(date) {
-      return date.toLocaleString("en-US", { month: "short", year: "2-digit" });
+      const month = date.toLocaleString("en-US", { month: "short" });
+      return `${month} '${String(date.getFullYear()).slice(-2)}`;
     }
 
     function formatMonth(date) {
@@ -107,8 +111,8 @@
       const unitsPerDay = total / totalDays;
       const amberUnits = unitsPerDay * 14;
       const fontSize = Math.max(10, Math.min(13, Math.min(w, h) * 0.028));
-      const leftGutter = fontSize * 5.6;
-      const bottomGutter = fontSize * 2.4;
+      const leftGutter = SHOW_LABELS ? fontSize * 5.6 : 0;
+      const bottomGutter = SHOW_LABELS ? fontSize * 2.4 : 0;
       const plotX = x + leftGutter;
       const plotY = y;
       const plotW = w - leftGutter;
@@ -254,7 +258,7 @@
 
       const minTickGap = Math.max(72, fontSize * 7);
       let tick = new Date(start.getFullYear(), start.getMonth() + 3, 1);
-      while (tick < end) {
+      while (SHOW_LABELS && tick < end) {
         const tickX = xAt(tick);
         if (tickX - plotX > minTickGap && plotX + plotW - tickX > minTickGap) {
           svg.appendChild(el("line", {
@@ -286,7 +290,7 @@
       const tick = fresh ? weekMin * daysElapsed / 7 : 0;
 
       const fontSize = Math.max(10, Math.min(12, Math.min(w, h) * 0.05));
-      const labelSpace = fontSize * 1.7;
+      const labelSpace = SHOW_LABELS ? fontSize * 1.7 : 0;
       const trackHeight = Math.min(22, h * 0.18);
       const trackY = y + labelSpace;
       const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -336,7 +340,7 @@
       }
 
       // Daily pips.
-      const pipLabelH = fontSize * 1.6;
+      const pipLabelH = SHOW_LABELS ? fontSize * 1.6 : 0;
       const pipTop = trackY + trackHeight + Math.max(12, h * 0.1);
       const pipHeight = y + h - pipTop - pipLabelH;
       const pipGap = Math.max(6, w * 0.012);
