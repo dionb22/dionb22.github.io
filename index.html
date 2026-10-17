@@ -5,22 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>.</title>
   <style>
-    html, body { margin: 0; height: 100%; background: #0a1424; }
+    html, body { margin: 0; height: 100%; background: #110811; }
     svg { display: block; width: 100%; height: 100%; }
   </style>
 </head>
 <body>
   <svg id="pace"></svg>
   <script>
-    const BG = "#0a1424";
-    const ON_PACE = "#2a8cf0";
-    const SLIPPING = "#f2d16b";
-    const BEHIND = "#e8572e";
-    const DIM = "#16263d";
-    const LINE = "#dcebff";
-    const FAINT = "rgba(150,200,255,0.18)";
-    const BAND = "rgba(150,200,255,0.08)";
-    const SLIPPING_ZONE = "rgba(242,209,107,0.09)";
+    const BG = "#110811";
+    const ON_PACE = "#f58cba";
+    const SLIPPING = "#f08a3c";
+    const BEHIND = "#d42a3a";
+    const DIM = "#2b1622";
+    const LINE = "#f5c542";
+    const TARGET = "rgba(220,60,70,0.85)";
+    const FAINT = "rgba(245,197,66,0.25)";
+    const BAND = "rgba(245,197,66,0.14)";
+    const SLIPPING_ZONE = "rgba(220,60,70,0.14)";
+    const TEXT = "rgba(250,225,170,0.7)";
+    const TEXT_MUTED = "rgba(250,225,170,0.35)";
 
     const SHOW_LABELS = false;
 
@@ -59,7 +62,7 @@
       const node = el("text", {
         x,
         y,
-        fill: opts.fill || "rgba(190,220,255,0.55)",
+        fill: opts.fill || TEXT,
         "font-family": "ui-sans-serif, system-ui, -apple-system, sans-serif",
         "font-size": opts.size || 11,
         "font-weight": opts.weight || "400",
@@ -143,7 +146,7 @@
       // Target line.
       svg.appendChild(el("line", {
         x1: xAt(start), y1: yAt(0), x2: xAt(end), y2: yAt(total),
-        stroke: "rgba(150,200,255,0.5)", "stroke-width": 1.5,
+        stroke: TARGET, "stroke-width": 1.5,
       }));
 
       // Actual completions as a step line.
@@ -391,7 +394,7 @@
         label(svg, days[i], px + pipWidth / 2, y + h, {
           size: fontSize,
           anchor: "middle",
-          fill: future ? "rgba(190,220,255,0.3)" : "rgba(190,220,255,0.6)",
+          fill: future ? TEXT_MUTED : TEXT,
         });
       }
     }
