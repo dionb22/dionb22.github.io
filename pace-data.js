@@ -16,12 +16,13 @@ window.PACE = {
 
   completed: [
     { date: "2026-10-13", units: 16 },
+    { date: "2026-10-17", units: 3 }
   ],
 
-  current: { units: 3, goal: "2026-10-18" },
+  current: { units: 3, goal: "2026-10-25" },
 
   week: {
     of: "2026-10-12",
-    hours: [2, 2, 2, 2.5, 2.5, 0, 0],
+    hours: [2, 2, 2, 2.5, 2.5, 4, 0],
   },
 };
