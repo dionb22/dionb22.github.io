@@ -156,32 +156,70 @@
         .sort((a, b) => a.date - b.date);
 
       let cumulative = 0;
-      const steps = [[start, 0]];
+      const points = []; // [days since start, cumulative units]
       for (const entry of completions) {
-        steps.push([entry.date, cumulative]);
         cumulative += entry.units;
-        steps.push([entry.date, cumulative]);
+        points.push([(entry.date - start) / DAY, cumulative]);
       }
-      const lastDate = today < end ? today : end;
-      steps.push([lastDate, cumulative]);
 
-      const stepPoints = steps
-        .map(([date, units]) => `${xAt(date)},${yAt(units)}`)
-        .join(" ");
-      svg.appendChild(el("polyline", {
-        points: stepPoints,
-        fill: "none",
-        stroke: LINE,
-        "stroke-width": 2.5,
-        "stroke-linejoin": "round",
-      }));
-
-      // Current batch: dashed step from today up to the goal date.
+      let goalInfo = null;
       if (data.current && today >= start && today <= end) {
         const goal = parseDate(data.current.goal);
         const overdue = goal < today;
         const goalDate = overdue ? today : goal;
-        const goalUnits = cumulative + data.current.units;
+        goalInfo = { goal, overdue, goalDate, goalUnits: cumulative + data.current.units };
+        points.push([(goalDate - start) / DAY, goalInfo.goalUnits]);
+      }
+
+      // Pace line: constant slope fitted through the start (0 units) and all
+      // completed and projected points (least squares, through the origin).
+      let sumXY = 0;
+      let sumXX = 0;
+      for (const [days, units] of points) {
+        sumXY += days * units;
+        sumXX += days * days;
+      }
+      const slope = sumXX > 0 ? sumXY / sumXX : 0; // units per day
+
+      if (slope > 0) {
+        const todayDays = Math.min((today - start) / DAY, totalDays);
+        const finishDays = Math.min(total / slope, totalDays);
+        const at = (days) => [
+          xAt(new Date(start.getTime() + days * DAY)),
+          yAt(slope * days),
+        ];
+        // Solid up to today, dashed forecast beyond it.
+        const solidEnd = Math.min(todayDays, finishDays);
+        svg.appendChild(el("polyline", {
+          points: [at(0), at(solidEnd)].map((p) => p.join(",")).join(" "),
+          fill: "none",
+          stroke: LINE,
+          "stroke-width": 2.5,
+          "stroke-linecap": "round",
+        }));
+        if (finishDays > solidEnd) {
+          svg.appendChild(el("polyline", {
+            points: [at(solidEnd), at(finishDays)].map((p) => p.join(",")).join(" "),
+            fill: "none",
+            stroke: LINE,
+            "stroke-width": 1.5,
+            "stroke-dasharray": "4 5",
+            opacity: 0.6,
+          }));
+        }
+      }
+
+      // Actual completions as small dots.
+      for (const [days, units] of points.slice(0, completions.length)) {
+        svg.appendChild(el("circle", {
+          cx: xAt(new Date(start.getTime() + days * DAY)), cy: yAt(units), r: 3,
+          fill: BG, stroke: LINE, "stroke-width": 1.5,
+        }));
+      }
+
+      // Current batch: goal marker.
+      if (goalInfo) {
+        const { goal, overdue, goalDate, goalUnits } = goalInfo;
         const expectedAtGoal = unitsPerDay * (goalDate - start) / DAY;
         const shortfall = expectedAtGoal - goalUnits;
         const goalColor = overdue ? BEHIND
@@ -189,17 +227,6 @@
           : shortfall <= amberUnits ? SLIPPING
           : BEHIND;
 
-        svg.appendChild(el("polyline", {
-          points: [
-            [xAt(today), yAt(cumulative)],
-            [xAt(goalDate), yAt(cumulative)],
-            [xAt(goalDate), yAt(goalUnits)],
-          ].map((p) => p.join(",")).join(" "),
-          fill: "none",
-          stroke: goalColor,
-          "stroke-width": 1.5,
-          "stroke-dasharray": "4 4",
-        }));
         svg.appendChild(el("circle", {
           cx: xAt(goalDate), cy: yAt(goalUnits), r: 5,
           fill: BG, stroke: goalColor, "stroke-width": 2,
