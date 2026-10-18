@@ -26,7 +26,6 @@
     const TEXT_MUTED = "rgba(225,208,255,0.35)";
 
     const SHOW_LABELS = false;
-
     const DAY = 86400000;
 
     function parseDate(s) {
@@ -206,6 +205,19 @@
             "stroke-dasharray": "4 5",
             opacity: 0.6,
           }));
+        }
+
+        // Forecast finish date, where the pace line reaches the top.
+        if (total / slope <= totalDays * 3) {
+          const finishDate = new Date(start.getTime() + (total / slope) * DAY);
+          const [fx, fy] = at(finishDays);
+          const nearRight = fx > plotX + plotW - 90;
+          label(svg, `Finish ${formatDay(finishDate)} '${String(finishDate.getFullYear()).slice(-2)}`,
+            fx + (nearRight ? 0 : 8), nearRight ? fy - 8 : fy + 4, {
+              size: fontSize,
+              fill: LINE,
+              anchor: nearRight ? "end" : "start",
+            });
         }
       }
 
