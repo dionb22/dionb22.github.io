@@ -19,10 +19,10 @@ window.PACE = {
     { date: "2026-10-17", units: 3 }
   ],
 
-  current: { units: 3, goal: "2026-10-25" },
+  current: { units: 3, goal: "2026-10-24" },
 
   week: {
     of: "2026-10-19",
-    hours: [2, 0, 0, 0, 0, 0, 0],
+    hours: [2, 2, 0, 0, 0, 0, 0],
   },
 };
